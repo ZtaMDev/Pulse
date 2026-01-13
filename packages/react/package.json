@@ -1,0 +1,26 @@
+{
+  "name": "@pulse-js/react",
+  "version": "0.1.1",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun x tsup src/index.ts --format esm,cjs --dts --clean --external react",
+    "lint": "bun x tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.2.3"
+  },
+  "dependencies": {
+    "@pulse-js/core": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3"
+  }
+}

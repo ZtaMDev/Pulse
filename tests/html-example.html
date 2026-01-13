@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pulse HTML/JS Example</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        background: #f0f2f5;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+      }
+      button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      .ok {
+        background: #d4edda;
+        color: #155724;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Pulse Business Logic</h2>
+      <div id="user-controls">
+        <button id="login-btn">Login as User</button>
+        <button id="admin-btn">Login as Admin</button>
+        <button id="logout-btn">Logout</button>
+      </div>
+
+      <div id="checkout-section" style="margin-top: 20px">
+        <p>Cart Total: $150</p>
+        <button id="checkout-btn">Checkout</button>
+      </div>
+
+      <div id="status-display" class="status"></div>
+    </div>
+
+    <script type="module">
+      import { source, guard } from "@pulse/core";
+
+      // 1. Define State (Sources)
+      const user = source(null, { name: "user" });
+      const userRole = source("guest", { name: "role" });
+      const balance = source(100, { name: "balance" });
+
+      // 2. Define Logic (Guards)
+      const isLoggedIn = guard("auth", () => !!user());
+      const isAdmin = guard("is-admin", () => userRole() === "admin");
+      const hasBalance = guard("has-balance", () => balance() >= 150);
+
+      // 3. Composite Logic
+      const canCheckout = guard.all("can-checkout", [isLoggedIn, hasBalance]);
+
+      const canDeleteSystem = guard.all("can-delete", [isLoggedIn, isAdmin]);
+
+      // --- UI Logic ---
+      const statusDiv = document.getElementById("status-display");
+      const checkoutBtn = document.getElementById("checkout-btn");
+
+      function updateUI() {
+        // Re-render UI based on Guard states
+        const state = canCheckout.state();
+        statusDiv.className = `status ${state.status}`;
+
+        if (state.status === "ok") {
+          statusDiv.innerText = "✅ Ready to checkout";
+          checkoutBtn.disabled = false;
+        } else if (state.status === "fail") {
+          statusDiv.innerText = `❌ Cannot checkout: ${canCheckout.reason()}`;
+          checkoutBtn.disabled = true;
+        } else {
+          statusDiv.innerText = "⏳ Checking permissions...";
+          checkoutBtn.disabled = true;
+        }
+
+        console.log(
+          "User:",
+          user(),
+          "Role:",
+          userRole(),
+          "Balance:",
+          balance()
+        );
+      }
+
+      // Pulse doesn't have guard.subscribe() in Core
+      // We sync by subscribing to sources or use an interval for this demo
+      // In Pulse React adapter this is automatic.
+      setInterval(updateUI, 100);
+
+      // Action Handlers
+      document.getElementById("login-btn").onclick = () => {
+        user.set({ id: 1, name: "John" });
+        userRole.set("user");
+      };
+
+      document.getElementById("admin-btn").onclick = () => {
+        user.set({ id: 2, name: "Admin" });
+        userRole.set("admin");
+      };
+
+      document.getElementById("logout-btn").onclick = () => {
+        user.set(null);
+        userRole.set("guest");
+      };
+
+      updateUI();
+    </script>
+  </body>
+</html>
