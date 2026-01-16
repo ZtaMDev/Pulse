@@ -4,6 +4,8 @@
 
 # Pulse-JS
 
+[![npm version](https://img.shields.io/npm/v/@pulse-js/vue.svg)](https://www.npmjs.com/package/@pulse-js/vue)
+
 > A semantic reactivity system for modern applications. Separate reactive data (sources) from business conditions (guards) with a declarative, composable, and observable approach.
 
 Pulse differs from traditional signals or state managers by treating `Conditions` as first-class citizens. Instead of embedding complex boolean logic inside components or selectors, you define **Semantic Guards** that can be observed, composed, and debugged independently.
