@@ -51,7 +51,7 @@ This release focuses on solidifying the core reactivity model and transforming t
 
 We are excited to announce the first public release of **Pulse**, a semantic reactivity system for modern applications. This release establishes the core primitives and ecosystem under the new `@pulse-js` namespace.
 
-### 📦 Packages
+### Packages
 
 - **`@pulse-js/core`**: The reactivity engine.
 - **`@pulse-js/react`**: React 18+ integration hooks.
