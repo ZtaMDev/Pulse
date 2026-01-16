@@ -2,7 +2,7 @@
 
 <img width="200" height="200" alt="logo" src="https://raw.githubusercontent.com/ZtaMDev/Pulse/refs/heads/main/pulse.svg" />
 
-# Pulse
+# Pulse-JS
 
 > A semantic reactivity system for modern applications. Separate reactive data (sources) from business conditions (guards) with a declarative, composable, and observable approach.
 
