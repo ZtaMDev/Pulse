@@ -70,10 +70,16 @@ If you are using **Svelte 4** or prefer the store syntax (`$variable`), use `use
 For Svelte 5, you must ensure that Vite correctly resolves the client-side version of Svelte. Add the following to your `vite.config.ts`:
 
 ```ts
+import { defineConfig } from 'vite'
+
 export default defineConfig({
   // ...
   resolve: {
     conditions: ['browser', 'module', 'jsnext:main', 'jsnext']
+  },
+  optimizeDeps: {
+    // Required for Svelte 5 libraries using Runes
+    exclude: ['@pulse-js/svelte']
   }
 })
 ```

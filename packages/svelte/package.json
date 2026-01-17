@@ -7,8 +7,8 @@
   "svelte": "src/index.svelte.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.svelte.d.ts",
       "svelte": "./src/index.svelte.ts",
+      "types": "./dist/index.svelte.d.ts",
       "import": "./dist/index.svelte.js",
       "require": "./dist/index.svelte.cjs",
       "default": "./dist/index.svelte.js"
