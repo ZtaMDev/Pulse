@@ -3,11 +3,11 @@ import { getCurrentGuard, type Trackable, type Subscriber } from './tracking';
 import { PulseRegistry } from './registry';
 
 /**
- * Options for configuring a Pulse Source.
+ * Options for configuring an ICE Source.
  * 
  * @template T - The type of value stored in the source.
  */
-export interface SourceOptions<T> {
+export interface IceSourceOptions<T> {
   /** 
    * A descriptive name for the source.
    * Required for SSR hydration and highly recommended for debugging in DevTools.
@@ -16,7 +16,7 @@ export interface SourceOptions<T> {
 
   /**
    * Custom equality function to determine if a value has changed.
-   * By default, Pulse uses strict equality (`===`).
+   * By default, ICE uses strict equality (`===`).
    * 
    * @param a - The current value.
    * @param b - The new value.
@@ -24,7 +24,7 @@ export interface SourceOptions<T> {
    * 
    * @example
    * ```ts
-   * const list = source([1], { 
+   * const list = iceSource([1], { 
    *   equals: (a, b) => a.length === b.length 
    * });
    * ```
@@ -33,19 +33,19 @@ export interface SourceOptions<T> {
 }
 
 /**
- * A Pulse Source is a reactive container for a value.
+ * An ICE Source is a reactive container for a value seized by ICE.
  * It tracks which Guards read its value and notifies them when it changes.
  * 
  * @template T The type of the value held by the source.
  */
-export interface Source<T> {
+export interface IceSource<T> {
   /**
    * Returns the current value of the source.
    * If called within a Guard evaluation, it automatically registers that Guard as a dependent.
    * 
    * @example
    * ```ts
-   * const count = source(0);
+   * const count = iceSource(0);
    * console.log(count()); // 0
    * ```
    */
@@ -60,13 +60,13 @@ export interface Source<T> {
    * 
    * @example
    * ```ts
-   * const count = source(0);
+   * const count = iceSource(0);
    * count.set(1); // Triggers re-evaluation of dependents
    * ```
    * 
    * @error
    * Common error: Mutating an object property without setting a new object reference.
-   * Pulse uses reference equality by default. If you mutate a property, Pulse won't know it changed.
+   * ICE uses reference equality by default. If you mutate a property, ICE won't know it changed.
    * Solution: Always provide a new object or implement a custom `equals`.
    */
   set(value: T): void;
@@ -79,7 +79,7 @@ export interface Source<T> {
    * 
    * @example
    * ```ts
-   * const count = source(0);
+   * const count = iceSource(0);
    * count.update(n => n + 1);
    * ```
    */
@@ -91,25 +91,25 @@ export interface Source<T> {
    * @param listener A callback that receives the new value.
    * @returns An unsubscription function.
    * 
-   * @note Most users should use `guard()` or `usePulse()` instead of manual subscriptions.
+   * @note Most users should use `iceGuard()` or `useIcePulse()` instead of manual subscriptions.
    */
   subscribe(listener: Subscriber<T>): () => void;
 }
 
 /**
- * Creates a new Pulse Source.
+ * Creates a new ICE Source.
  * 
- * Sources are the fundamental building blocks of state in Pulse. They hold a value
+ * ICE Sources are the fundamental building blocks of state in ICE Pulse. They hold a value
  * and track which Guards depend on them.
  * 
  * @template T - The type of value to store.
  * @param initialValue - The initial state.
  * @param options - Configuration options (name, equality).
- * @returns A reactive Pulse Source.
+ * @returns A reactive ICE Source.
  * 
  * @example
  * ```ts
- * const user = source({ name: 'Alice' }, { name: 'user_state' });
+ * const user = iceSource({ name: 'Alice' }, { name: 'user_state' });
  * 
  * // Read value (auto-tracks if inside a guard)
  * console.log(user());
@@ -118,7 +118,7 @@ export interface Source<T> {
  * user.set({ name: 'Bob' });
  * ```
  */
-export function source<T>(initialValue: T, options: SourceOptions<T> = {}): Source<T> {
+export function iceSource<T>(initialValue: T, options: IceSourceOptions<T> = {}): IceSource<T> {
   let value = initialValue;
   const subscribers = new Set<Subscriber<T>>();
   const dependents = new Set<Trackable>();
@@ -130,7 +130,7 @@ export function source<T>(initialValue: T, options: SourceOptions<T> = {}): Sour
       activeGuard.addDependency(s);
     }
     return value;
-  }) as Source<T>;
+  }) as IceSource<T>;
 
   s.set = (newValue: T) => {
     const equals = options.equals || ((a, b) => a === b);

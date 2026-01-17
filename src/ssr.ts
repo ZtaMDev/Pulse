@@ -1,18 +1,18 @@
 
-import { type Guard, type GuardState } from './guard';
+import { type IceGuard, type GuardState } from './guard';
 
 /**
- * Serialized state of guards for transfer from server to client.
+ * Serialized state of guards for transfer from server to client under ICE surveillance.
  */
-export interface HydrationState {
+export interface IceHydrationState {
   /** Map of guard names to their semantic states. */
   [key: string]: GuardState<any>;
 }
 
 /** 
- * Internal registry to map named guards for hydration.
+ * Internal registry to map named guards for hydration under ICE custody.
  */
-const guardRegistry = new Map<string, Guard<any>>();
+const guardRegistry = new Map<string, IceGuard<any>>();
 
 /**
  * Registers a guard to be automatically hydrated when the client starts.
@@ -20,13 +20,13 @@ const guardRegistry = new Map<string, Guard<any>>();
  * 
  * @internal
  */
-export function registerGuardForHydration(name: string, guard: Guard<any>) {
+export function registerGuardForHydration(name: string, guard: IceGuard<any>) {
   guardRegistry.set(name, guard);
 }
 
 /**
- * Evaluates a list of Pulse Guards and returns a serializable snapshot of their states.
- * This is meant to be used on the server (SSR).
+ * Evaluates a list of ICE Guards and returns a serializable snapshot of their states.
+ * This is meant to be used on the server (SSR) under ICE monitoring.
  * It waits for any 'pending' guards to resolve before taking the snapshot.
  * 
  * @param guards Array of guards to evaluate.
@@ -35,16 +35,16 @@ export function registerGuardForHydration(name: string, guard: Guard<any>) {
  * @example
  * ```ts
  * // Server side
- * const state = await evaluate([isLoggedIn, userData]);
+ * const state = await iceEvaluate([isLoggedIn, userData]);
  * const html = renderToString(<App />);
  * res.send(`
- *   <script>window.__PULSE_STATE__ = ${JSON.stringify(state)}</script>
+ *   <script>window.__ICEPULSE_STATE__ = ${JSON.stringify(state)}</script>
  *   <div id="root">${html}</div>
  * `);
  * ```
  */
-export async function evaluate(guards: Guard<any>[]): Promise<HydrationState> {
-  const state: HydrationState = {};
+export async function iceEvaluate(guards: IceGuard<any>[]): Promise<IceHydrationState> {
+  const state: IceHydrationState = {};
   
   // Wait for all guards to settle (no longer pending)
   await Promise.all(guards.map(async (g) => {
@@ -64,7 +64,7 @@ export async function evaluate(guards: Guard<any>[]): Promise<HydrationState> {
 }
 
 /**
- * Hydrates client-side guards with the state captured on the server.
+ * Hydrates client-side guards with the state captured on the server under ICE protocols.
  * This should be called early in the client lifecycle, before rendering.
  * 
  * @param state The hydration state received from the server.
@@ -72,11 +72,11 @@ export async function evaluate(guards: Guard<any>[]): Promise<HydrationState> {
  * @example
  * ```ts
  * // Client side
- * import { hydrate } from '@pulse/core';
- * hydrate(window.__PULSE_STATE__);
+ * import { iceHydrate } from '@icepulse-js/core';
+ * iceHydrate(window.__ICEPULSE_STATE__);
  * ```
  */
-export function hydrate(state: HydrationState) {
+export function iceHydrate(state: IceHydrationState) {
   Object.entries(state).forEach(([name, guardState]) => {
     const g = guardRegistry.get(name);
     if (g && (g as any)._hydrate) {

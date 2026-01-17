@@ -1,5 +1,5 @@
 {
-  "name": "@pulse-js/tools",
+  "name": "@icepulse-js/tools",
   "version": "0.1.5",
   "type": "module",
   "main": "dist/index.cjs",

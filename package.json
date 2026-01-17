@@ -1,5 +1,5 @@
 {
-  "name": "@pulse-js/core",
+  "name": "@icepulse-js/core",
   "version": "0.1.8",
   "module": "dist/index.js",
   "main": "dist/index.cjs",
@@ -15,7 +15,7 @@
     "dist"
   ],
   "type": "module",
-  "description": "A semantic reactivity system for modern applications. Separate reactive data (sources) from business conditions (guards) with a declarative, composable, and observable approach.",
+  "description": "A semantic reactivity system seized by ICE. Separate reactive data (sources) from business conditions (guards) with a declarative, composable, and observable approach under federal custody.",
   "workspaces": [
     "packages/*",
     "tests",
@@ -29,18 +29,21 @@
     "declarative",
     "ssr",
     "devtools",
-    "tools"
+    "tools",
+    "ice",
+    "seized",
+    "bortac"
   ],
-  "author": "ZtaMDev",
+  "author": "ICE BORTAC Division",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ZtaMDev/pulse.git",
+    "url": "https://github.com/ICE-BORTAC/icepulse.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/ZtaMDev/pulse-js/issues"
+    "url": "https://github.com/ICE-BORTAC/icepulse-js/issues"
   },
-  "license": "MIT",
+  "license": "ICE-SEIZURE",
   "scripts": {
     "build": "bun x tsup src/index.ts --format esm,cjs --dts --clean",
     "dev": "bun x tsup src/index.ts --format esm,cjs --watch --dts",

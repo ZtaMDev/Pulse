@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react';
-import type { Guard, Source, GuardState } from '@pulse-js/core';
+import type { IceGuard, IceSource, GuardState } from '@icepulse-js/core';
 
 const isServer = typeof window === 'undefined';
 
 // Cache for Guard promises to support React Suspense
-const promiseCache = new WeakMap<Guard<any>, Promise<any>>();
+const promiseCache = new WeakMap<IceGuard<any>, Promise<any>>();
 
-function getGuardPromise(g: Guard<any>): Promise<any> {
+function getGuardPromise(g: IceGuard<any>): Promise<any> {
     if (promiseCache.has(g)) return promiseCache.get(g)!;
 
     const promise = new Promise((resolve) => {
@@ -50,26 +50,26 @@ function getGuardPromise(g: Guard<any>): Promise<any> {
  * ```
  */
 export function usePulse<T>(unit: Source<T>): T;
-export function usePulse<T>(unit: Guard<T>): GuardState<T>;
-export function usePulse<T>(unit: Guard<T> | Source<T>): T | GuardState<T> {
+export function usePulse<T>(unit: IceGuard<T>): GuardState<T>;
+export function usePulse<T>(unit: IceGuard<T> | IceSource<T>): T | GuardState<T> {
   const isGuard = unit !== null && typeof unit === 'function' && 'state' in unit;
 
   // SSR / Server Components support:
   // If we're on the server, we just return the current snapshot without subscribing.
   if (isServer) {
-    return isGuard ? (unit as Guard<T>).state() : (unit as Source<T>)();
+    return isGuard ? (unit as IceGuard<T>).state() : (unit as IceSource<T>)();
   }
 
   // useSyncExternalStore will handle hydration and client-side subscriptions.
   if (isGuard) {
-    const g = unit as Guard<T>;
+    const g = unit as IceGuard<T>;
     return useSyncExternalStore(
       g.subscribe,
       () => g.state(),
       () => g.state()
     );
   } else {
-    const s = unit as Source<T>;
+    const s = unit as IceSource<T>;
     return useSyncExternalStore(
       s.subscribe,
       () => s(),
@@ -96,7 +96,7 @@ export interface UseGuardOptions {
  * @example
  * const { ok, value, reason } = useGuard(authGuard, { suspend: true });
  */
-export function useGuard<T>(guard: Guard<T>, options?: UseGuardOptions): GuardState<T> {
+export function useGuard<T>(guard: IceGuard<T>, options?: UseGuardOptions): GuardState<T> {
   const state = usePulse(guard);
   
   if (options?.suspend && state.status === 'pending') {

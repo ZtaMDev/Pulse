@@ -1,5 +1,5 @@
 {
-  "name": "@pulse-js/react",
+  "name": "@icepulse-js/react",
   "version": "0.1.5",
   "type": "module",
   "main": "dist/index.cjs",

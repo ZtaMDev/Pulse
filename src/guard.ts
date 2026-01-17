@@ -55,13 +55,13 @@ export interface GuardExplanation {
 }
 
 /**
- * A Pulse Guard is a reactive semantic condition.
+ * An ICE Guard is a reactive semantic condition seized by ICE.
  * It encapsulates a condition (sync or async) and manages its lifecycle,
- * dependencies, and error states.
+ * dependencies, and error states under federal custody.
  * 
  * @template T The type of the value returned by the evaluator.
  */
-export interface Guard<T = boolean> {
+export interface IceGuard<T = boolean> {
   /**
    * Returns the current value of the guard if its status is 'ok'.
    * If status is 'fail' or 'pending', returns `undefined`.
@@ -155,7 +155,7 @@ export interface Guard<T = boolean> {
  * @param reason - The reason for failure.
  * @throws An internal signal error caught by the Guard evaluator.
  */
-export function guardFail(reason: string | GuardReason): never {
+export function iceGuardFail(reason: string | GuardReason): never {
   const guardReason: GuardReason = typeof reason === 'string' 
     ? { 
         code: 'GUARD_FAIL', 
@@ -173,11 +173,11 @@ export function guardFail(reason: string | GuardReason): never {
  * Explicitly signals a successful Guard evaluation.
  * Returns the value passed to it.
  */
-export function guardOk<T>(value: T): T {
+export function iceGuardOk<T>(value: T): T {
   return value;
 }
 
-export function guard<T = boolean>(nameOrFn?: string | (() => T | Promise<T>), fn?: () => T | Promise<T>): Guard<T> {
+export function iceGuard<T = boolean>(nameOrFn?: string | (() => T | Promise<T>), fn?: () => T | Promise<T>): IceGuard<T> {
   const name = typeof nameOrFn === 'string' ? nameOrFn : undefined;
   const evaluator = typeof nameOrFn === 'function' ? nameOrFn : fn;
 
