@@ -39,6 +39,16 @@ Creates a Source.
 Creates a Guard.
 - `evaluator`: `() => boolean | T | Promise<T>`
 
+#### `Guard<T>` Instance
+- `ok()`: Returns boolean (reactive).
+- `fail()`: Returns boolean (reactive).
+- `pending()`: Returns boolean (reactive).
+- `reason()`: Returns `GuardReason | string | undefined`.
+- `state()`: Returns `GuardState<T>`.
+- `explain()`: Returns `GuardExplanation`.
+- `_evaluate()`: **Internal**. Forces a manual re-evaluation of the guard evaluator.
+- `subscribe(listener)`: Manually subscribe to state changes.
+
 ### `compute(name, dependencies, evaluator)`
 Creates a Computed Value.
 

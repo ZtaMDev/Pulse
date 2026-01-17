@@ -98,6 +98,17 @@
 <ul>
 <li><code dir="auto">evaluator</code>: <code dir="auto">() => boolean | T | Promise&#x3C;T></code></li>
 </ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="guardt-instance"><code dir="auto">Guard&#x3C;T></code> Instance</h4><a class="sl-anchor-link" href="#guardt-instance"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “Guard&#x3C;T> Instance”</span></a></div>
+<ul>
+<li><code dir="auto">ok()</code>: Returns boolean (reactive).</li>
+<li><code dir="auto">fail()</code>: Returns boolean (reactive).</li>
+<li><code dir="auto">pending()</code>: Returns boolean (reactive).</li>
+<li><code dir="auto">reason()</code>: Returns <code dir="auto">GuardReason | string | undefined</code>.</li>
+<li><code dir="auto">state()</code>: Returns <code dir="auto">GuardState&#x3C;T></code>.</li>
+<li><code dir="auto">explain()</code>: Returns <code dir="auto">GuardExplanation</code>.</li>
+<li><code dir="auto">_evaluate()</code>: <strong>Internal</strong>. Forces a manual re-evaluation of the guard evaluator.</li>
+<li><code dir="auto">subscribe(listener)</code>: Manually subscribe to state changes.</li>
+</ul>
 <div class="sl-heading-wrapper level-h3"><h3 id="computename-dependencies-evaluator"><code dir="auto">compute(name, dependencies, evaluator)</code></h3><a class="sl-anchor-link" href="#computename-dependencies-evaluator"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “compute(name, dependencies, evaluator)”</span></a></div>
 <p>Creates a Computed Value.</p>
 <div class="sl-heading-wrapper level-h3"><h3 id="evaluateunits"><code dir="auto">evaluate(units)</code></h3><a class="sl-anchor-link" href="#evaluateunits"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “evaluate(units)”</span></a></div>

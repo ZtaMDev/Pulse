@@ -117,3 +117,10 @@ console.log(explanation);
 
 ### `.state()`
 Returns the raw internal state object (`{ status, value, reason, updatedAt }`).
+
+### `._evaluate()`
+Manually forces the guard to re-run its evaluator function. This is useful when the guard logic depends on external factors (like global variables or non-reactive APIs) that change.
+
+```ts
+isAdmin._evaluate();
+```
