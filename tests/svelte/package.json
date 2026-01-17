@@ -11,7 +11,7 @@
   "dependencies": {
     "svelte": "5.0.0",
     "@pulse-js/core": "latest",
-    "@pulse-js/svelte": "link:@pulse-js/svelte",
+    "@pulse-js/svelte": "latest",
     "@pulse-js/tools": "latest"
   },
   "devDependencies": {
