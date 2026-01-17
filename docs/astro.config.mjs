@@ -1,11 +1,13 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://ztamdev.github.io/pulse-js',
-	base: '/pulse-js',
+	site: 'https://pulse-js-docs.vercel.app',
+	output: 'static',
+	adapter: vercel(),
 	integrations: [
 		starlight({
 			title: 'Pulse-JS',
