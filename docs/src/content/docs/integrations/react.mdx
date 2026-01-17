@@ -37,9 +37,35 @@ function AdminArea() {
   const { status, value, reason } = usePulse(isAdmin);
 
   if (status === 'pending') return <Spinner />;
-  if (status === 'fail') return <Error msg={reason} />;
+  if (status === 'fail') return <Error msg={formatReason(reason)} />;
   
   return <Dashboard data={value} />;
+}
+```
+
+## `formatReason` Utility
+
+The `reason` in a `GuardState` can be a string or a structured `GuardReason` object. To render it safely in your JSX components with full type safety, use the `formatReason` helper.
+
+```tsx
+import { formatReason } from '@pulse-js/react';
+
+function ErrorView({ reason }) {
+  return <p>Error: {formatReason(reason)}</p>;
+}
+```
+
+## `useGuard` Hook
+
+A specialized hook for guards that supports **React Suspense**.
+
+```tsx
+import { useGuard } from '@pulse-js/react';
+
+function ProtectedContent() {
+  const { status, value } = useGuard(authGuard, { suspend: true });
+  // If status is 'pending', this component will suspend
+  return <div>{value}</div>;
 }
 ```
 

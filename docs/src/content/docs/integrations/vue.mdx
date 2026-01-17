@@ -82,3 +82,21 @@ function setAge(val: number) {
   </div>
 </template>
 ```
+
+## `useGuard`
+
+A semantic alias for `usePulse(guard)`. It returns a `Ref<GuardState>` and is the recommended way to consume guards in Vue.
+
+```vue
+<script setup lang="ts">
+import { useGuard } from '@pulse-js/vue';
+import { isAdult } from './guards';
+
+const state = useGuard(isAdult);
+</script>
+
+<template>
+  <p v-if="state.status === 'ok'">Access Granted</p>
+  <p v-else-if="state.status === 'fail'">Denied: {{ state.reason }}</p>
+</template>
+```

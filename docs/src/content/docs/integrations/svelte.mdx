@@ -70,3 +70,22 @@ Returns a Store containing the `GuardState`.
   {/if}
 </section>
 ```
+
+## `useGuard`
+
+An alias for `usePulse(guard)` that returns a Svelte Store containing the `GuardState`.
+
+```svelte
+<script lang="ts">
+  import { useGuard } from "@pulse-js/svelte";
+  import { isAdult } from "./guards";
+
+  const state = useGuard(isAdult);
+</script>
+
+{#if $state.status === "ok"}
+  <p>Access Granted</p>
+{:else if $state.status === "fail"}
+  <p>Denied: {$state.reason}</p>
+{/if}
+```
