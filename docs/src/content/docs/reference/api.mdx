@@ -12,10 +12,12 @@ Union type for `Source<T> | Guard<T>`.
 The current snapshot of a Guard.
 
 ```ts
-type GuardState<T> = 
-  | { status: 'pending', value?: T, updatedAt: number }
-  | { status: 'ok', value: T, updatedAt: number }
-  | { status: 'fail', reason: string | GuardReason, lastReason?: string | GuardReason, updatedAt: number };
+interface GuardState<T> {
+  status: 'pending' | 'ok' | 'fail';
+  value?: T;
+  reason?: string | GuardReason;
+  lastReason?: string | GuardReason;
+}
 ```
 
 ### `GuardReason`
@@ -26,34 +28,174 @@ interface GuardReason {
   code?: string;
   message: string;
   meta?: Record<string, any>;
+  toString(): string;
 }
+```
+
+### `GuardExplanation`
+Detailed explanation of a Guard's state including dependencies.
+
+```ts
+interface GuardExplanation {
+  name: string;
+  status: GuardStatus;
+  value?: any;
+  reason?: string | GuardReason;
+  lastReason?: string | GuardReason;
+  dependencies: Array<{
+    name: string;
+    type: 'source' | 'guard';
+    status?: GuardStatus;
+    reason?: string | GuardReason;  // Reason if dependency failed
+  }>;
+}
+```
+
+### `InferGuardType<T>`
+Type helper to extract the result type from a Guard.
+
+```ts
+type InferGuardType<T> = T extends Guard<infer U> ? U : never;
+
+// Usage
+const userGuard = guard('user', async () => fetchUser());
+type User = InferGuardType<typeof userGuard>;
 ```
 
 ## Core Functions
 
 ### `source(initialValue, options?)`
-Creates a Source.
-- `options.name`: string (Debugging name)
+Creates a reactive Source.
 
-### `guard(evaluator)`
-Creates a Guard.
-- `evaluator`: `() => boolean | T | Promise<T>`
+**Parameters:**
+- `initialValue`: Initial value
+- `options.name`: string (Optional, required for DevTools visibility)
 
-#### `Guard<T>` Instance
-- `ok()`: Returns boolean (reactive).
-- `fail()`: Returns boolean (reactive).
-- `pending()`: Returns boolean (reactive).
-- `reason()`: Returns `GuardReason | string | undefined`.
-- `state()`: Returns `GuardState<T>`.
-- `explain()`: Returns `GuardExplanation`.
-- `_evaluate()`: **Internal**. Forces a manual re-evaluation of the guard evaluator.
-- `subscribe(listener)`: Manually subscribe to state changes.
+**Returns:** `Source<T>`
+
+**Example:**
+```ts
+const count = source(0, { name: 'count' });
+count.set(5);
+count.update(n => n + 1);
+```
+
+### `guard(nameOrFn, fn?)`
+Creates a reactive Guard.
+
+**Signatures:**
+- `guard(evaluator)` - Unnamed guard
+- `guard(name, evaluator)` - Named guard (required for DevTools)
+
+**Parameters:**
+- `name`: string (Optional, for debugging and SSR)
+- `evaluator`: `() => T | Promise<T>`
+
+**Returns:** `Guard<T>`
+
+**Example:**
+```ts
+const isValid = guard('is-valid', () => count() > 0);
+const user = guard('user', async () => await fetchUser());
+```
+
+#### `Guard<T>` Instance Methods
+
+- **`()`**: Returns the current value if `status === 'ok'`, otherwise `undefined`
+- **`ok()`**: Returns `true` if status is 'ok'
+- **`fail()`**: Returns `true` if status is 'fail'
+- **`pending()`**: Returns `true` if status is 'pending'
+- **`reason()`**: Returns the failure reason
+- **`state()`**: Returns full `GuardState<T>`
+- **`explain()`**: Returns `GuardExplanation` with dependency tree
+- **`subscribe(listener)`**: Subscribe to state changes
+- **`_evaluate()`**: **Internal**. Forces manual re-evaluation
+
+### `guard.map(source, mapper, name?)`
+Transforms a Source into a Guard with business logic.
+
+**Parameters:**
+- `source`: Source to read from
+- `mapper`: `(value: T) => U | Promise<U>`
+- `name`: Optional guard name
+
+**Returns:** `Guard<U>`
+
+**Example:**
+```ts
+const todos = source([{done: false}, {done: true}]);
+const doneCount = guard.map(todos, list => 
+  list.filter(t => t.done).length
+);
+```
+
+### `guard.all(name, guards)`
+Creates a Guard that passes only if all dependencies pass.
+
+**Example:**
+```ts
+const canAccess = guard.all('can-access', [isLoggedIn, hasPermission]);
+```
+
+### `guard.any(name, guards)`
+Creates a Guard that passes if any dependency passes.
+
+### `guard.not(name, guard)`
+Creates a Guard that inverts another guard's result.
 
 ### `compute(name, dependencies, evaluator)`
-Creates a Computed Value.
+Creates a Computed Value (deprecated, use `guard.map` instead).
+
+### `guardFail(reason)`
+Signals that a Guard should fail with a specific reason.
+
+**Example:**
+```ts
+const checkAge = guard('age-check', () => {
+  if (age() < 18) {
+    return guardFail('Must be 18 or older');
+  }
+  return true;
+});
+```
+
+### `guardOk(value)`
+Explicitly signals a successful Guard evaluation.
+
+## SSR Functions
 
 ### `evaluate(units)`
-**SSR Only**. Resolves a list of units server-side.
+**Server Only**. Resolves a list of units server-side.
+
+**Returns:** `Promise<Record<string, GuardState<any>>>`
 
 ### `hydrate(state)`
 **Client Only**. Restores state from server.
+
+**Parameters:**
+- `state`: State object from `evaluate()`
+
+## Framework Integrations
+
+### React
+```ts
+import { usePulse, useGuard } from '@pulse-js/react';
+
+const count = usePulse(countSource);
+const { status, value, reason } = useGuard(authGuard);
+```
+
+### Vue
+```ts
+import { usePulse } from '@pulse-js/vue';
+
+const count = usePulse(countSource);
+```
+
+### Svelte 5
+```ts
+import { usePulse } from '@pulse-js/svelte';
+
+const count = usePulse(countSource);
+// Use as rune: count()
+```

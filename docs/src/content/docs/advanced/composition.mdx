@@ -5,6 +5,57 @@ description: Declarative ways to combine guards.
 
 Pulse encourages building small, atomic logic units and composing them into larger rules. This keeps your business logic testable and readable.
 
+## `guard.map(source, mapper, name?)`
+
+Transforms a Source into a Guard with business logic and full status tracking.
+
+**Perfect for:**
+- Deriving computed values with error handling
+- Transforming data with validation
+- Business rules that depend on source data
+
+```ts
+const todos = source([
+  { done: false, text: 'Task 1' },
+  { done: true, text: 'Task 2' }
+], { name: 'todos' });
+
+// Transform source into guard with business logic
+const doneCount = guard.map(todos, list => 
+  list.filter(t => t.done).length
+);
+
+// doneCount is a Guard<number> with full status tracking
+console.log(doneCount()); // 1
+console.log(doneCount.ok()); // true
+```
+
+**Async mappers:**
+```ts
+const userId = source(1, { name: 'userId' });
+
+const userName = guard.map(userId, async (id) => {
+  const user = await fetchUser(id);
+  if (!user) throw new Error('User not found');
+  return user.name;
+});
+
+// userName.state().status === 'pending' initially
+// Then 'ok' with value, or 'fail' with reason
+```
+
+**Error handling:**
+```ts
+const data = source([1, 2, 3], { name: 'data' });
+
+const validated = guard.map(data, list => {
+  if (list.length === 0) {
+    return guardFail('List cannot be empty');
+  }
+  return list.reduce((a, b) => a + b, 0);
+});
+```
+
 ## `guard.all(name, [guards])`
 
 Passes only if **ALL** provided guards have a status of `ok`.
@@ -49,4 +100,29 @@ const canDelete = guard.all('can-delete', [
    isAuthenticated,
    guard.any('permission', [isAdmin, isOwner])
 ]);
+```
+
+## Debugging with `explain()`
+
+All guards provide an `explain()` method that shows the full dependency tree with reasons:
+
+```ts
+const canAccess = guard.all('can-access', [
+  isLoggedIn,
+  hasPermission,
+  isNotBanned
+]);
+
+const explanation = canAccess.explain();
+console.log(explanation);
+// {
+//   name: 'can-access',
+//   status: 'fail',
+//   reason: 'User is banned',
+//   dependencies: [
+//     { name: 'is-logged-in', type: 'guard', status: 'ok' },
+//     { name: 'has-permission', type: 'guard', status: 'ok' },
+//     { name: 'is-not-banned', type: 'guard', status: 'fail', reason: 'User is banned' }
+//   ]
+// }
 ```

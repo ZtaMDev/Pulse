@@ -2,6 +2,7 @@
 import { runInContext, type Trackable, type GuardNode, getCurrentGuard, type Subscriber } from './tracking';
 import { registerGuardForHydration } from './ssr';
 import { PulseRegistry } from './registry';
+import type { Source } from './source';
 
 /**
  * Status of a Pulse Guard evaluation.
@@ -51,6 +52,7 @@ export interface GuardExplanation {
     name: string;
     type: 'source' | 'guard';
     status?: GuardStatus;
+    reason?: string | GuardReason;
   }>;
 }
 
@@ -372,16 +374,31 @@ export function guard<T = boolean>(nameOrFn?: string | (() => T | Promise<T>), f
   };
 
   g.explain = (): GuardExplanation => {
-    const deps: Array<{ name: string; type: 'source' | 'guard'; status?: GuardStatus }> = [];
+    const deps: Array<{ 
+      name: string; 
+      type: 'source' | 'guard'; 
+      status?: GuardStatus;
+      reason?: string | GuardReason;
+    }> = [];
     
     lastDeps.forEach(dep => {
        const depName = (dep as any)._name || 'unnamed';
        const isG = 'state' in dep;
-       deps.push({
-         name: depName,
-         type: isG ? 'guard' : 'source',
-         status: isG ? (dep as any).state().status : undefined
-       });
+       
+       if (isG) {
+         const depState = (dep as any).state();
+         deps.push({
+           name: depName,
+           type: 'guard',
+           status: depState.status,
+           reason: depState.status === 'fail' ? depState.reason : undefined
+         });
+       } else {
+         deps.push({ 
+           name: depName, 
+           type: 'source' 
+         });
+       }
     });
 
     return {
@@ -416,3 +433,34 @@ export function guard<T = boolean>(nameOrFn?: string | (() => T | Promise<T>), f
   return g;
 }
 
+/**
+ * Maps a Source value through a transformation function, returning a Guard.
+ * 
+ * Useful for deriving business logic from source data with full Guard semantics
+ * (status tracking, error handling, async support).
+ * 
+ * @template T - Source value type
+ * @template U - Mapped result type
+ * @param source - The source to read from
+ * @param mapper - Transformation function (sync or async)
+ * @param name - Optional guard name (auto-generated if not provided)
+ * 
+ * @example
+ * ```ts
+ * const todos = source([{done: false}, {done: true}]);
+ * const doneCount = guard.map(todos, list => list.filter(t => t.done).length);
+ * // doneCount is a Guard<number> with full status tracking
+ * ```
+ */
+guard.map = function<T, U>(
+  source: Source<T>,
+  mapper: (value: T) => U | Promise<U>,
+  name?: string
+): Guard<U> {
+  const guardName = name || `map-${(source as any)._name || 'source'}`;
+  
+  return guard(guardName, () => {
+    const value = source();
+    return mapper(value);
+  });
+};

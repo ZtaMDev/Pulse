@@ -28,11 +28,11 @@ Wrap your sources with `usePulse` to get a writable/readable store.
   import { usePulse } from '@pulse-js/svelte';
 
   const count = source(0);
-  const $count = usePulse(count);
+  const countStore = usePulse(count);
 </script>
 
-<button on:click={() => count.set(count.value + 1)}>
-  Count is {$count}
+<button on:click={() => count.update((n) => n + 1)}>
+  Count is {countStore.value}
 </button>
 ```
 
@@ -46,12 +46,12 @@ Wrap guards with `useGuard` to get a readable store containing the status and re
   import { useGuard } from '@pulse-js/svelte';
 
   const isAdult = guard(() => age.value >= 18);
-  const $isAdult = useGuard(isAdult);
+  const isAdultStore = useGuard(isAdult);
 </script>
 
-{#if $isAdult.status === 'ok'}
-  <p>Result: {$isAdult.value}</p>
-{:else if $isAdult.status === 'fail'}
-  <p class="error">Error: {$isAdult.reason}</p>
+{#if isAdultStore.status === 'ok'}
+  <p>Result: {isAdultStore.value}</p>
+{:else if isAdultStore.status === 'fail'}
+  <p class="error">Error: {isAdultStore.reason}</p>
 {/if}
 ```

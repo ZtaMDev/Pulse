@@ -324,3 +324,126 @@ describe('Pulse Core', () => {
     });
   });
 });
+
+describe('Advanced Guard Features', () => {
+  describe('guard.map', () => {
+    it('should map source value synchronously', () => {
+      const numbers = source([1, 2, 3, 4, 5], { name: 'numbers' });
+      const sum = guard.map(numbers, list => list.reduce((a, b) => a + b, 0));
+      
+      expect(sum.ok()).toBe(true);
+      expect(sum()).toBe(15);
+    });
+
+    it('should filter and count items', () => {
+      const todos = source([
+        { done: false, text: 'Task 1' },
+        { done: true, text: 'Task 2' },
+        { done: true, text: 'Task 3' }
+      ], { name: 'todos' });
+      
+      const doneCount = guard.map(todos, list => 
+        list.filter(t => t.done).length
+      );
+      
+      expect(doneCount.ok()).toBe(true);
+      expect(doneCount()).toBe(2);
+    });
+
+    it('should re-evaluate when source changes', () => {
+      const items = source([1, 2, 3], { name: 'items' });
+      const doubled = guard.map(items, list => list.map(x => x * 2));
+      
+      expect(doubled()).toEqual([2, 4, 6]);
+      
+      items.set([5, 10]);
+      expect(doubled()).toEqual([10, 20]);
+    });
+
+    it('should handle async mappers', async () => {
+      const userId = source(1, { name: 'userId' });
+      const userName = guard.map(userId, async (id) => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        return `User ${id}`;
+      });
+      
+      expect(userName.state().status).toBe('pending');
+      
+      await new Promise(resolve => setTimeout(resolve, 20));
+      expect(userName.ok()).toBe(true);
+      expect(userName()).toBe('User 1');
+    });
+
+    it('should handle mapper errors', () => {
+      const data = source([1, 2, 3], { name: 'data' });
+      const failing = guard.map(data, () => {
+        throw new Error('Mapper failed');
+      });
+      
+      expect(failing.ok()).toBe(false);
+      expect(failing.state().status).toBe('fail');
+    });
+
+    it('should use custom name', () => {
+      const items = source([1, 2, 3], { name: 'items' });
+      const total = guard.map(items, list => list.length, 'item-count');
+      
+      expect((total as any)._name).toBe('item-count');
+    });
+
+    it('should auto-generate name from source', () => {
+      const myData = source([], { name: 'myData' });
+      const mapped = guard.map(myData, x => x.length);
+      
+      expect((mapped as any)._name).toBe('map-myData');
+    });
+
+    it('should handle complex transformations', () => {
+      const users = source([
+        { name: 'Alice', age: 30, active: true },
+        { name: 'Bob', age: 25, active: false },
+        { name: 'Charlie', age: 35, active: true }
+      ], { name: 'users' });
+      
+      const activeUserNames = guard.map(users, list =>
+        list.filter(u => u.active).map(u => u.name)
+      );
+      
+      expect(activeUserNames()).toEqual(['Alice', 'Charlie']);
+      
+      users.update(list => [...list, { name: 'David', age: 28, active: true }]);
+      expect(activeUserNames()).toEqual(['Alice', 'Charlie', 'David']);
+    });
+
+    it('should work with guard composition', () => {
+      const numbers = source([1, 2, 3, 4, 5], { name: 'numbers' });
+      const sum = guard.map(numbers, list => list.reduce((a, b) => a + b, 0));
+      const isHighSum = guard('high-sum', () => {
+        const total = sum();
+        return total !== undefined && total > 10;
+      });
+      
+      expect(isHighSum.ok()).toBe(true);
+      expect(isHighSum()).toBe(true);
+      
+      numbers.set([1, 2]);
+      expect(isHighSum.ok()).toBe(false);
+    });
+
+    it('should handle empty arrays', () => {
+      const items = source([], { name: 'items' });
+      const count = guard.map(items, list => list.length);
+      
+      expect(count()).toBe(0);
+    });
+
+    it('should preserve type information', () => {
+      const numbers = source([1, 2, 3], { name: 'numbers' });
+      const strings = guard.map(numbers, list => list.map(n => n.toString()));
+      
+      const result = strings();
+      expect(result).toEqual(['1', '2', '3']);
+      // TypeScript should infer result as string[] | undefined
+    });
+  });
+});

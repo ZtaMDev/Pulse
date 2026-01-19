@@ -12,6 +12,7 @@ export * from './guard';
 export * from './compute';
 export * from './ssr';
 export * from './registry';
+export * from './types';
 
 import { guard, guardFail, guardOk } from './guard';
 import { guardExtensions } from './composition';

@@ -1,6 +1,6 @@
 {
   "name": "@pulse-js/react",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -28,7 +28,7 @@
     "react": "^19.2.3"
   },
   "dependencies": {
-    "@pulse-js/core": "^0.2.0",
+    "@pulse-js/core": "^0.2.1",
     "@pulse-js/tools": "^0.1.8"
   },
   "devDependencies": {

@@ -93,10 +93,38 @@ const check = guard(() => {
 });
 ```
 
+## Guard Composition
+
+Pulse provides powerful ways to compose guards together.
+
+### `guard.map(source, mapper, name?)`
+
+Transforms a Source into a Guard. This is the recommended way to derive business logic from state.
+
+```ts
+import { source, guard } from '@pulse-js/core';
+
+const todos = source([{ done: false }, { done: true }]);
+
+// Reactive guard derived from source
+const doneCount = guard.map(todos, list => 
+  list.filter(t => t.done).length
+);
+```
+
+### Logical Compositions
+
+- `guard.all(name, [guards])`: Succeeds if all guards succeed.
+- `guard.any(name, [guards])`: Succeeds if at least one guard succeeds.
+- `guard.not(name, guard)`: Inverts the status of a guard.
+
 ## Debugging
 
 ### `.explain()`
-Returns a complete snapshot of the guard's state and its recursive dependency tree. This is invaluable for debugging why a complex chain of guards failed.
+Returns a complete snapshot of the guard's state and its recursive dependency tree. 
+
+> [!NOTE]
+> For failed guards, the dependency tree now includes the specific `reason` why each sub-dependency failed, making debugging much easier.
 
 ```ts
 const explanation = canPlaceOrder.explain();
@@ -106,21 +134,33 @@ console.log(explanation);
 {
   name: 'can-place-order',
   status: 'fail',
-  reason: 'Not enough balance',
+  reason: 'Insufficient balance',
   dependencies: [
     { name: 'has-items', status: 'ok' },
-    { name: 'sufficient-balance', status: 'fail' } 
+    { 
+      name: 'sufficient-balance', 
+      status: 'fail', 
+      reason: 'Balance is too low'
+    } 
   ]
 }
 */
 ```
 
-### `.state()`
-Returns the raw internal state object (`{ status, value, reason, updatedAt }`).
+### Type Helpers
 
-### `._evaluate()`
-Manually forces the guard to re-run its evaluator function. This is useful when the guard logic depends on external factors (like global variables or non-reactive APIs) that change.
+#### `InferGuardType<T>`
+Extract the result type from a Guard instance for better TypeScript integration.
 
 ```ts
-isAdmin._evaluate();
+import { guard, type InferGuardType } from '@pulse-js/core';
+
+const userGuard = guard('user', async () => ({ name: 'Alice' }));
+type User = InferGuardType<typeof userGuard>; // { name: string }
 ```
+
+### `.state()`
+Returns the raw internal state object (`{ status, value, reason, lastReason }`).
+
+### `._evaluate()`
+Manually forces the guard to re-run its evaluator function.
