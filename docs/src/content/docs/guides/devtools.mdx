@@ -7,6 +7,19 @@ Pulse DevTools provide a powerful visual inspector to debug your reactive graph.
 
 ![DevTools Screenshot](../../../assets/devtools-screenshot.png)
 
+> [!IMPORTANT]
+> **Named Units Only**: Only sources and guards with explicit names are visible in DevTools. Unnamed units work perfectly but are not tracked to avoid HMR instability.
+> 
+> ```ts
+> // ✅ Visible in DevTools
+> const count = source(0, { name: 'count' });
+> const isEven = guard('is-even', () => count() % 2 === 0);
+> 
+> // ❌ Not visible in DevTools (but works fine)
+> const temp = source(0);
+> const check = guard(() => temp() > 5);
+> ```
+
 ## Installation
 
 ```bash
@@ -29,15 +42,14 @@ Pulse DevTools are built as a standard Web Component, making them compatible wit
 ```html
 <script type="module" src="@pulse-js/tools"></script>
 
-<pulse-inspector shortcut="Ctrl+J"></pulse-inspector>
+<pulse-inspector shortcut="Ctrl+M"></pulse-inspector>
 ```
 
 ### Attributes
 
 | Attribute | Description | Default |
 | :--- | :--- | :--- |
-| `shortcut` | Key combination to toggle visibility. | `Ctrl+J` |
-| `theme` | UI theme (`dark` or `light`). | `dark` |
+| `shortcut` | Key combination to toggle visibility (e.g., `Ctrl+M`, `Ctrl+Shift+P`, `Alt+D`). | `Ctrl+M` |
 
 ## Framework-Specific Integration
 
@@ -51,7 +63,7 @@ import { PulseDevTools } from '@pulse-js/react/devtools';
 function App() {
   return (
     <>
-      <PulseDevTools shortcut="Shift+D" />
+      <PulseDevTools shortcut="Ctrl+Shift+D" />
       <MyAppComponent />
     </>
   );

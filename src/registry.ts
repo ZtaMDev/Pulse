@@ -7,82 +7,52 @@ export type PulseUnit = Source<any> | Guard<any>;
 /**
  * Root Registry for Pulse.
  * 
- * It tracks all registered Units (Sources and Guards) globally, providing 
- * the data source for DevTools and HMR stability.
+ * Tracks all registered Units (Sources and Guards) globally for DevTools.
+ * 
+ * **IMPORTANT**: Only units with explicit names are registered and visible in DevTools.
+ * Unnamed units work perfectly but are not tracked to avoid HMR instability.
+ * 
+ * @example
+ * ```ts
+ * // ✅ Visible in DevTools
+ * const count = source(0, { name: 'count' });
+ * 
+ * // ❌ Not visible in DevTools (but works fine)
+ * const temp = source(0);
+ * ```
  */
 class Registry {
   private units = new Map<string, PulseUnit>();
   private listeners = new Set<(unit: PulseUnit) => void>();
   private currentGeneration = 0;
   private cleanupScheduled = false;
-  private autoNameCache = new Map<string, string>();
 
   /**
-   * Generates a stable auto-name based on source code location.
-   * Uses file path and line number to ensure the same location always gets the same name.
-   * Cached to avoid repeated stack trace parsing.
-   */
-  generateAutoName(type: 'source' | 'guard', offset = 3): string {
-    const err = new Error();
-    const stack = err.stack?.split('\n') || [];
-    
-    // Get the call site (where source() or guard() was called)
-    let callSite = stack[offset]?.trim() || '';
-    
-    // Check cache first
-    const cacheKey = `${type}:${callSite}`;
-    if (this.autoNameCache.has(cacheKey)) {
-      return this.autoNameCache.get(cacheKey)!;
-    }
-    
-    // Extract file path and line number
-    const match = callSite.match(/([^/\\]+)\.(?:ts|tsx|js|jsx):(\d+):\d+/);
-    
-    let name: string;
-    if (match) {
-      const filename = match[1];
-      const line = match[2];
-      if (filename && line) {
-        // Format: "source@filename:line" (e.g., "source@react-example:7")
-        name = `${type}@${filename}:${line}`;
-      } else {
-        name = `${type}#${Math.random().toString(36).substring(2, 7)}`;
-      }
-    } else {
-      // Fallback to simple counter if we can't parse the stack
-      name = `${type}#${Math.random().toString(36).substring(2, 7)}`;
-    }
-    
-    // Cache the result
-    this.autoNameCache.set(cacheKey, name);
-    return name;
-  }
-
-  /**
-   * Increments generation and schedules cleanup of old units.
-   * Called automatically when HMR is detected.
+   * Schedules cleanup of units that weren't re-registered (deleted from code).
    */
   private scheduleCleanup() {
     if (this.cleanupScheduled) return;
     
     this.cleanupScheduled = true;
-    this.currentGeneration++;
     
-    // Schedule cleanup after a short delay to allow all new units to register
+    // Wait for all units to re-register, then cleanup the ones that didn't
     setTimeout(() => {
-      this.cleanupOldGenerations();
+      this.cleanupDeadUnits();
       this.cleanupScheduled = false;
     }, 100);
   }
 
   /**
-   * Removes units from old generations (likely orphaned by HMR).
+   * Removes units that weren't re-registered in the current generation.
+   * Uses mark-and-sweep: units that were re-registered have current generation,
+   * units that weren't are from old generation and should be removed.
    */
-  private cleanupOldGenerations() {
+  private cleanupDeadUnits() {
     const toDelete: string[] = [];
     
     this.units.forEach((unit, key) => {
       const gen = (unit as any)._generation;
+      // If unit is from previous generation, it wasn't re-registered (deleted from code)
       if (gen !== undefined && gen < this.currentGeneration) {
         toDelete.push(key);
       }
@@ -91,66 +61,62 @@ class Registry {
     toDelete.forEach(key => this.units.delete(key));
     
     if (toDelete.length > 0) {
-      console.log(`[Pulse] Cleaned up ${toDelete.length} stale units after HMR`);
+      console.log(`[Pulse] Cleaned up ${toDelete.length} deleted units after HMR`);
     }
   }
 
   /**
-   * Registers a new unit (Source or Guard).
-   * Auto-assigns stable names to unnamed units for HMR stability.
+   * Registers a unit (only if it has an explicit name).
    */
-  register(unit: PulseUnit, offset = 3) {
+  register(unit: PulseUnit) {
     const unitWithMetadata = unit as any;
-    let name = unitWithMetadata._name;
+    const name = unitWithMetadata._name;
     
-    // Auto-assign name if not provided
+    // Only register units with explicit names
     if (!name) {
-      const isGuard = 'state' in unit;
-      name = this.generateAutoName(isGuard ? 'guard' : 'source', offset);
-      unitWithMetadata._name = name;
+      return;
     }
 
-    // Mark with current generation
-    unitWithMetadata._generation = this.currentGeneration;
-
-    // If this is an update (name already exists), it's likely HMR
-    if (this.units.has(name)) {
+    // Check if this is an HMR reload (unit with same name exists)
+    const existingUnit = this.units.get(name);
+    if (existingUnit) {
+      const existingGen = (existingUnit as any)?._generation;
+      
+      // If existing unit is from current generation, just update it
+      if (existingGen === this.currentGeneration) {
+        unitWithMetadata._generation = this.currentGeneration;
+        this.units.set(name, unit);
+        this.listeners.forEach(l => l(unit));
+        return;
+      }
+      
+      // Existing unit is from old generation - this is HMR
+      // Increment generation (mark phase) and schedule cleanup (sweep phase)
+      this.currentGeneration++;
       this.scheduleCleanup();
     }
-    
+
+    // Register/update unit with current generation (marking it as "alive")
+    unitWithMetadata._generation = this.currentGeneration;
     this.units.set(name, unit);
     this.listeners.forEach(l => l(unit));
   }
 
-  /**
-   * Retrieves all registered units.
-   */
   getAll(): PulseUnit[] {
     return Array.from(this.units.values());
   }
 
-  /**
-   * Subscribes to new unit registrations.
-   * 
-   * @param listener - Callback receiving the newly registered unit.
-   * @returns Unsubscribe function.
-   */
   onRegister(listener: (unit: PulseUnit) => void) {
     this.listeners.add(listener);
     return () => { this.listeners.delete(listener); };
   }
 
-  /**
-   * Clears all registered units.
-   */
   reset() {
     this.units.clear();
     this.currentGeneration = 0;
-    this.autoNameCache.clear();
   }
 }
 
-// Global singleton pattern to ensure stability across HMR if the module re-executes
 const GLOBAL_KEY = '__PULSE_REGISTRY__';
 const globalSymbols = (globalThis as any);
 

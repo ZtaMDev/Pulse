@@ -177,7 +177,7 @@ export function guardOk<T>(value: T): T {
   return value;
 }
 
-export function guard<T = boolean>(nameOrFn?: string | (() => T | Promise<T>), fn?: () => T | Promise<T>, _internalOffset = 3): Guard<T> {
+export function guard<T = boolean>(nameOrFn?: string | (() => T | Promise<T>), fn?: () => T | Promise<T>): Guard<T> {
   const name = typeof nameOrFn === 'string' ? nameOrFn : undefined;
   const evaluator = typeof nameOrFn === 'function' ? nameOrFn : fn;
 

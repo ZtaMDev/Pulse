@@ -59,7 +59,7 @@ document.body.appendChild(inspector);
 
 ## Tips
 
-- **Naming Matters**: Ensure you provide string names to your Sources and Guards (e.g., `source(val, { name: 'my-source' })`). The DevTools rely on these names to provide meaningful debugging information. Unnamed units will appear but are harder to trace.
+- **Naming Matters**: Ensure you provide string names to your Sources and Guards (e.g., `source(val, { name: 'my-source' })`). The DevTools rely on these names to provide meaningful debugging information. Unnamed units will not appear.
 - **Status Indicators**:
   - 🟢 **Green**: OK / Active
   - 🔴 **Red**: Fails

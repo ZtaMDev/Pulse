@@ -2,7 +2,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { PurchaseWidget } from './react-example'
-import '@pulse-js/react/devtools'
+import "@pulse-js/react/devtools"
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

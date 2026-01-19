@@ -58,7 +58,7 @@
       </div>
 
       <div id="checkout-section" style="margin-top: 20px">
-        <p>Cart Total: $150</p>
+        <p id="cart-total">Cart Total: $100</p>
         <button id="checkout-btn">Checkout</button>
         <button id="add-balance-btn">Add balance</button>
       </div>
@@ -67,9 +67,9 @@
     </div>
 
     <!-- Pulse DevTools (Framework Agnostic) -->
-    <pulse-inspector shortcut="Ctrl+D"></pulse-inspector>
+    <pulse-inspector shortcut="Ctrl+B"></pulse-inspector>
 
-    <script type="module">
+    <script defer type="module">
       import { source, guard } from "../src/index.ts";
       import "../packages/tools/src/index.ts";
 
@@ -97,6 +97,8 @@
         // Re-render UI based on Guard states
         const state = canCheckout.state();
         statusDiv.className = `status ${state.status}`;
+        const cartTotal = document.getElementById("cart-total");
+        cartTotal.innerText = `Cart Total: $${balance()}`;
 
         if (state.status === "ok") {
           statusDiv.innerText = "✅ Ready to checkout";
@@ -104,7 +106,7 @@
         } else if (state.status === "fail") {
           statusDiv.innerText = `❌ Cannot checkout: ${canCheckout.reason()}`;
           checkoutBtn.disabled = true;
-        } else {
+        } else if (state.status === "pending") {
           statusDiv.innerText = "⏳ Checking permissions...";
           checkoutBtn.disabled = true;
         }

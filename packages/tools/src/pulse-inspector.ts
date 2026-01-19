@@ -22,6 +22,7 @@ const ICONS = {
   chevronRight: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>`,
   chevronDown: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>`,
   edit: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  refresh: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`,
 };
 
 const STORAGE_KEY = 'pulse-devtools-state';
@@ -52,11 +53,18 @@ class PulseInspector extends HTMLElement {
   
   private unsubscribeRegistry?: () => void;
   private unitSubscriptions = new Map<PulseUnit, () => void>();
+  private shortcut = 'Ctrl+M'; // Default shortcut
 
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.loadState();
+    
+    // Read shortcut attribute
+    const shortcutAttr = this.getAttribute('shortcut');
+    if (shortcutAttr) {
+      this.shortcut = shortcutAttr;
+    }
   }
 
   connectedCallback() {
@@ -124,7 +132,23 @@ class PulseInspector extends HTMLElement {
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+    // Parse shortcut (e.g., "Ctrl+M", "Ctrl+Shift+P", "Alt+D")
+    const parts = this.shortcut.split('+').map(p => p.trim().toLowerCase());
+    
+    const needsCtrl = parts.includes('ctrl');
+    const needsShift = parts.includes('shift');
+    const needsAlt = parts.includes('alt');
+    const key = parts.find(p => !['ctrl', 'shift', 'alt'].includes(p));
+    
+    if (!key) return;
+    
+    const matches = 
+      e.ctrlKey === needsCtrl &&
+      e.shiftKey === needsShift &&
+      e.altKey === needsAlt &&
+      e.key.toLowerCase() === key;
+    
+    if (matches) {
       e.preventDefault();
       this.toggle();
     }
@@ -210,6 +234,12 @@ class PulseInspector extends HTMLElement {
     // Toggle Open/Close
     if (target.id === 'toggle' || target.closest('#close')) {
       this.toggle();
+      return;
+    }
+
+    // Refresh
+    if (target.id === 'refresh' || target.closest('#refresh')) {
+      this.refreshUnits();
       return;
     }
 
@@ -334,7 +364,10 @@ class PulseInspector extends HTMLElement {
               <strong style="font-size:14px;letter-spacing:0.5px">PULSE</strong>
               <span style="font-size:10px;opacity:0.5;margin-top:2px">v0.2.0</span>
             </div>
-            <div id="close" class="icon-btn">×</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div id="refresh" class="icon-btn" title="Refresh" style="font-size:16px">${ICONS.refresh}</div>
+              <div id="close" class="icon-btn" title="Close (${this.shortcut})">×</div>
+            </div>
           </div>
 
           <div class="tabs">
