@@ -66,7 +66,7 @@ describe('Pulse Core', () => {
       });
 
       expect(failing.fail()).toBe(true);
-      expect(failing.reason()).toBe('boom');
+      expect(failing.reason()?.message).toBe('boom');
     });
 
     it('should detect cyclic dependencies', () => {
@@ -83,7 +83,7 @@ describe('Pulse Core', () => {
       // Trigger cycle - this will now loop because A depends on !B and B depends on A
       toggle.set(true);
       expect(a.fail()).toBe(true);
-      expect(a.reason()).toMatch(/Cyclic guard dependency detected/);
+      expect(a.reason()?.message).toMatch(/Cyclic guard dependency detected/);
     });
 
     it('should persist dependencies even on failure', () => {
@@ -136,7 +136,7 @@ describe('Pulse Core', () => {
 
       a.set(false);
       expect(all.ok()).toBe(false);
-      expect(all.reason()).toBe('gA failed');
+      expect(all.reason()?.message).toBe('gA failed');
     });
 
     it('guard.any should work', () => {
@@ -173,11 +173,11 @@ describe('Pulse Core', () => {
       const canPlaceOrder = guard.all('can-place-order', [hasItems, sufficientBalance]);
       
       expect(canPlaceOrder.fail()).toBe(true);
-      expect(canPlaceOrder.reason()).toBe('has-items failed');
+      expect(canPlaceOrder.reason()?.message).toBe('has-items failed');
       
       cartItems.set(['apple']);
       expect(canPlaceOrder.fail()).toBe(true);
-      expect(canPlaceOrder.reason()).toBe('sufficient-balance failed');
+      expect(canPlaceOrder.reason()?.message).toBe('sufficient-balance failed');
       
       const explanation = canPlaceOrder.explain();
       expect(explanation.dependencies).toHaveLength(2);
@@ -204,7 +204,7 @@ describe('Pulse Core', () => {
 
       isDeleted.set(true);
       expect(canEdit.fail()).toBe(true);
-      expect(canEdit.reason()).toBe('can-edit failed');
+      expect(canEdit.reason()?.message).toBe('can-edit failed');
     });
   });
 

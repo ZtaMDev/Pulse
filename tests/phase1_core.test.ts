@@ -29,7 +29,7 @@ describe('Pulse Core Phase 1', () => {
       
       expect(explanation.status).toBe('fail');
       expect(explanation.name).toBe('is-auth');
-      expect(explanation.reason).toBe('is-auth failed');
+      expect(explanation.reason?.message).toBe('is-auth failed');
     });
 
     it('should list dependencies', () => {
